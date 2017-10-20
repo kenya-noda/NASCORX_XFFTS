@@ -43,7 +43,7 @@ class data_server(object):
 
         RETURNS
         =======
-        Nothing but send data listed below.
+        Nothing, but send values listed below to ROS subscriber.
         1. XFFTS_SPEC : Send spectrum data
             1. timestamp : XFFTS-format timestamp.
                 Type     : str
