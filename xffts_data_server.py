@@ -11,6 +11,7 @@ import threading
 from necst.msg import XFFTS_msg
 from necst.msg import XFFTS_pm_msg
 
+
 class data_server(object):
     header_size = 64
     BE_num_Max = 16
@@ -302,18 +303,6 @@ class data_header(object):
         self.blocking = struct.unpack('I', header[60:64])[0]
         self.data_size = self.package_length - self.header_size
         return
-
-if __name__ == '__main__':
-    server = data_server()
-    rospy.init_node('XFFTS_SPEC_server')
-    server.start_thread()
-    print('\n\n'
-          '=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-'
-          'NASCO RX : XFFTS Data Server        '
-          '=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-'
-          '\n\n')
-    sub = rospy.Subscriber('stop', String, server.stop_loop())
-    rospy.spin()
 
 
 # History

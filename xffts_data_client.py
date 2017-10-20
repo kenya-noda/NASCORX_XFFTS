@@ -10,6 +10,7 @@ import threading
 from necst.msg import XFFTS_msg
 from necst.msg import XFFTS_pm_msg
 
+
 class data_client(object):
     synctime = 0.1
 
