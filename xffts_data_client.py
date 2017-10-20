@@ -247,9 +247,6 @@ class data_client(object):
         return
 
 
-
-
-
-
-
-
+# History
+# -------
+# written by T.Inaba
