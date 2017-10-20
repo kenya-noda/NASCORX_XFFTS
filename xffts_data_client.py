@@ -189,64 +189,6 @@ class data_client(object):
         else: index = self.unixlist.index(round(start, 1))
         return index
 
-    # For Non-"start-time" function
-    def oneshot_light(self, integtime, repeat):
-        """
-        DESCRIPTION
-        ===========
-        -- COMING SOON --
-
-        :param integtime:
-        :param repeat:
-        :return:
-        """
-
-        # define data list
-        # ----------------
-        self.timestamp = []
-        self.data = []
-
-        # subscribe data
-        # --------------
-        self.data_subscriber_light(integtime, repeat)
-
-        # data integration
-        # ----------------
-        spectrum = []
-        timelist = []
-        for i in range(repeat):
-            start = int(integtime / self.synctime * i)
-            fin = int(integtime / self.synctime * (i+1))
-            spectrum.append(numpy.average(self.data[start:fin], axis=0))
-            timelist.append(self.timestamp[start])
-        return timelist, spectrum
-
-    def data_subscriber_light(self, integtime, repeat):
-        """
-        DESCRIPTION
-        ===========
-        timestamp is not taken into consideration.
-
-        -- COMING SOON --
-        """
-        data_num = int(integtime * repeat / self.synctime)
-        sub = rospy.Subscriber('XFFTS_SPEC', XFFTS_msg, self.append)
-        time.sleep(integtime*repeat+0.5)
-        self.data = self.data[0:data_num]
-        return
-
-    def append_light(self, req):
-        self.data_temp = []
-        reqlist = [req.SPEC_BE1, req.SPEC_BE2, req.SPEC_BE3, req.SPEC_BE4,
-                   req.SPEC_BE5, req.SPEC_BE6, req.SPEC_BE7, req.SPEC_BE8,
-                   req.SPEC_BE9, req.SPEC_BE10, req.SPEC_BE11, req.SPEC_BE12,
-                   req.SPEC_BE13, req.SPEC_BE14, req.SPEC_BE15, req.SPEC_BE16]
-        for i in range(req.BE_num):
-            self.data_temp.append(reqlist[i])
-        self.timestamp.append(req.timestamp)
-        self.data.append(self.data_temp)
-        return
-
 
 # History
 # -------
