@@ -5,10 +5,10 @@ import rospy
 import numpy
 import calendar
 import datetime
-import threading
 
 from necst.msg import XFFTS_msg
 from necst.msg import XFFTS_pm_msg
+from necst.msg import XFFTS_temp_msg
 
 
 class data_client(object):
@@ -17,6 +17,60 @@ class data_client(object):
     def __init__(self):
         rospy.init_node('XFFTS_data_Subscriber')
         pass
+
+    def index_search(self, start, mode):
+        """
+        DESCRIPTION
+        ===========
+        This function returns the index of the first data to use.
+        Used to take into account of start time(waiting time).
+
+        ARGUMENTS
+        =========
+        1. start : Same as that of oneshot.
+
+        RETURNS
+        =======
+        1. index  : The index of the first data to use.
+             Type : int
+        """
+        if start is None: index = 0
+        else:
+            if mode == 'spec':
+                unixlist = self.unixlist
+                start_arg = round(start, 1)
+            elif mode == 'conti':
+                unixlist = self.conti_unixlist
+                start_arg = round(start, 1)
+            elif mode == 'temp':
+                unixlist = self.btemp_unixlist
+                start_arg = round(start)
+            index = unixlist.index(start_arg)
+        return index
+
+    def timestamp_to_unixtime(self, timestamp):
+        """
+        DESCRIPTION
+        ===========
+        This function converts "XFFTS-timestamp(UTC, string)" to "UNIX-time(UTC, float)".
+
+        ARGUMENTS
+        =========
+        1. timestamp : The timestamp of XFFTS(UTC, str).
+             Type    : Str
+             format  : '2017-10-20T09:34:13.9193PC  '
+
+        RETURNS
+        =======
+        1. unixtime : The unix-timestamp(UTC, float) of input XFFTS-timestamp(UTC, str).
+             Type   : float
+        """
+        t = datetime.datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fPC  ')
+        unixtime = calendar.timegm(t.timetuple()) + t.microsecond / 1e6
+        return unixtime
+
+    # Spectrum Func
+    # -------------
 
     def oneshot(self, integtime, repeat, start=None):
         """
@@ -61,11 +115,12 @@ class data_client(object):
 
         # define data list
         # ----------------
+        self.result = []
         self.timestamp = []
         self.unixlist = []
         self.data = []
 
-        if start is None: waittime = 0
+        if start is None or start == 0: waittime = 0
         else: waittime = start - time.time()
 
         # subscribe data
@@ -77,14 +132,15 @@ class data_client(object):
         spectrum = []
         timelist = []
         unixlist = []
-        init_index = self.index_search(start)
+        init_index = self.index_search(start=start, mode='spec')
         for i in range(repeat):
             start = init_index + int(integtime / self.synctime * i)
             fin = init_index + int(integtime / self.synctime * (i+1))
             spectrum.append(numpy.average(self.data[start:fin], axis=0))
             timelist.append(self.timestamp[start])
             unixlist.append(self.unixlist[start])
-        return timelist, unixlist, spectrum
+        self.result = [timelist, unixlist, spectrum]
+        return self.result
 
     def data_subscriber(self, integtime, repeat, waittime):
         """
@@ -125,7 +181,7 @@ class data_client(object):
         3. data_temp : The spectrum of each sync-time. Only for available Back-End.
              where   : self.data
         """
-        self.data_temp = []
+        data_temp = []
 
         # Calculate UNIX-time
         # -------------------
@@ -139,57 +195,208 @@ class data_client(object):
                    req.SPEC_BE9, req.SPEC_BE10, req.SPEC_BE11, req.SPEC_BE12,
                    req.SPEC_BE13, req.SPEC_BE14, req.SPEC_BE15, req.SPEC_BE16]
         for i in range(req.BE_num):
-            self.data_temp.append(reqlist[i])
+            data_temp.append(reqlist[i])
 
         # append return value
         # -------------------
         self.timestamp.append(req.timestamp)
         self.unixlist.append(unix_ret)
-        self.data.append(self.data_temp)
+        self.data.append(data_temp)
         return
 
-    def timestamp_to_unixtime(self, timestamp):
+    # Continuum Func
+    # --------------
+
+    def conti_oneshot(self, integtime, repeat, start=None):
         """
         DESCRIPTION
         ===========
-        This function converts "XFFTS-timestamp(UTC, string)" to "UNIX-time(UTC, float)".
+        This is the master function of this class.
+        This function returns integrated XFFTS power (continuum).
+        You can choose integration time, Number of repetition and start time.
 
         ARGUMENTS
         =========
+        1. integtime [sec] : integration time of each observation.
+        2. repeat    : How many times to repeat observation.
+        3. start [Unix time] : When to start observation in Unix-time.
+
+        RETURNS
+        =======
+        1. timelist : The timestamp of the first data of each integrations.
+        2. unixlist : The Unix-time version of timelist.
+        3. power : The integrated power.
+             Type   : float array
+             dim    : 3
+             shape  : [repeat, BE_num]
+
+        USAGE
+        =====
+        -- COMING SOON --
+        """
+        # define data list
+        # ----------------
+        self.conti_result = []
+        self.conti_timestamp = []
+        self.conti_unixlist = []
+        self.conti_data = []
+
+        if start is None or start == 0: waittime = 0
+        else: waittime = start - time.time()
+
+        # subscribe data
+        # --------------
+        self.conti_data_subscriber(integtime=integtime, repeat=repeat, waittime=waittime)
+
+        # data integration
+        # ----------------
+        spectrum = []
+        timelist = []
+        unixlist = []
+        init_index = self.index_search(start=start, mode='conti')
+        for i in range(repeat):
+            start = init_index + int(integtime / self.synctime * i)
+            fin = init_index + int(integtime / self.synctime * (i+1))
+            spectrum.append(numpy.average(self.conti_data[start:fin], axis=0))
+            timelist.append(self.conti_timestamp[start])
+            unixlist.append(self.conti_unixlist[start])
+        self.conti_result = [timelist, unixlist, spectrum]
+        return self.conti_result
+
+    def conti_data_subscriber(self, integtime, repeat, waittime):
+        sub2 = rospy.Subscriber('XFFTS_PM', XFFTS_pm_msg, self.conti_append)
+        time.sleep(waittime + integtime * repeat + 0.5)
+        sub2.unregister()
+        return
+
+    def conti_append(self, req):
+        """
+        DESCRIPTION
+        ===========
+        This function appends received-data to self list.
+
+        ARGUMENTS
+        =========
+        1. req : ROS format argument.
+
+        RETURNS
+        =======
+        Nothing but append to self-list.
         1. timestamp : The timestamp of XFFTS(UTC, str).
-             Type    : Str
-             format  : '2017-10-20T09:34:13.9193PC  '
-
-        RETURNS
-        =======
-        1. unixtime : The unix-timestamp(UTC, float) of input XFFTS-timestamp(UTC, str).
-             Type   : float
+             where   : self.timestamp
+        2. unix_ret  : The unix-timestamp(UTC, float) of format "xxxxxxxxxx.x" .
+             where   : self.unixlist
+        3. data_temp : The spectrum of each sync-time. Only for available Back-End.
+             where   : self.data
         """
-        t = datetime.datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fPC  ')
-        unixtime = calendar.timegm(t.timetuple()) + t.microsecond / 1e6
-        return unixtime
+        data_temp = []
 
-    def index_search(self, start):
+        # Calculate UNIX-time
+        # -------------------
+        unixtime = self.timestamp_to_unixtime(req.timestamp)
+        unix_ret = round(unixtime, 1)                                               # using xx.x [sec] format
+
+        # append data to temporary list
+        # -----------------------------
+        reqlist = [req.POWER_BE1, req.POWER_BE2, req.POWER_BE3, req.POWER_BE4,
+                   req.POWER_BE5, req.POWER_BE6, req.POWER_BE7, req.POWER_BE8,
+                   req.POWER_BE9, req.POWER_BE10, req.POWER_BE11, req.POWER_BE12,
+                   req.POWER_BE13, req.POWER_BE14, req.POWER_BE15, req.POWER_BE16]
+        for i in range(req.BE_num):
+            data_temp.append(reqlist[i])
+
+        # append return value
+        # -------------------
+        self.conti_timestamp.append(req.timestamp)
+        self.conti_unixlist.append(unix_ret)
+        self.conti_data.append(data_temp)
+        return
+
+    # Board Temperature Func
+    # ----------------------
+
+    def btemp_oneshot(self, sec, start=None):
         """
         DESCRIPTION
         ===========
-        This function returns the index of the first data to use.
-        Used to take into account of start time(waiting time).
+        This is the master function of this class.
+        This function returns XFFTS Board Temperature.
+        You can choose observation time and start time.
 
         ARGUMENTS
         =========
-        1. start : Same as that of oneshot.
+        1. sec [sec] : observation time.
+             Type          : int
+             Default       : Nothing
+        3. start [Unix time] : When to start observation in Unix-time.
+             Type            : float (time.time like value)
+             Default         : None
+             Example         : time.time()+5
+                             : 1508495163.9506361
 
         RETURNS
         =======
-        1. index  : The index of the first data to use.
-             Type : int
+        1. unixlist : The Unix-time version of timelist.
+             Type   : float list
+             Length : Same as "sec"
+        2. temperature : The Board Temperature.
+             Type      : float array
+             dim       : 3
+             shape     : [sec(int), BE_num=16, 3]
         """
-        if start is None: index = 0
-        else: index = self.unixlist.index(round(start, 1))
-        return index
+
+        # define data list
+        # ----------------
+        self.btemp_result = []
+        self.btemp_unixlist = []
+        self.btemp_data = []
+
+        if start is None or start == 0: waittime = 0
+        else: waittime = start - time.time()
+
+        # subscribe data
+        # --------------
+        self.btemp_data_subscriber(sec=sec, waittime=waittime)
+
+        # data sum
+        # --------
+        init_index = self.index_search(start=start, mode='temp')
+        fin_index = init_index + sec
+        if fin_index > len(self.btemp_unixlist):
+            fin_index = len(self.btemp_unixlist)+1
+        else:
+            pass
+        unixlist = self.btemp_unixlist[init_index:fin_index]
+        templist = self.btemp_data[init_index:fin_index]
+        self.btemp_result = [unixlist, templist]
+        return self.btemp_result
+
+    def btemp_data_subscriber(self, sec, waittime):
+        sub3 = rospy.Subscriber('XFFTS_TEMP', XFFTS_temp_msg, self.btemp_append)
+        time.sleep(waittime+sec+1)
+        sub3.unregister()
+
+    def btemp_append(self, req):
+        # Reform TimeStamp
+        # ----------------
+        unix_ret = round(req.timestamp)
+
+        # append data to temporary list
+        # -----------------------------
+        data_temp = [req.TEMP_BE1, req.TEMP_BE2, req.TEMP_BE3, req.TEMP_BE4,
+                     req.TEMP_BE5, req.TEMP_BE6, req.TEMP_BE7, req.TEMP_BE8,
+                     req.TEMP_BE9, req.TEMP_BE10, req.TEMP_BE11, req.TEMP_BE12,
+                     req.TEMP_BE13, req.TEMP_BE14, req.TEMP_BE15, req.TEMP_BE16]
+
+        # append return value
+        # -------------------
+        self.btemp_unixlist.append(unix_ret)
+        self.btemp_data.append(data_temp)
+        return
 
 
 # History
 # -------
 # written by T.Inaba
+# 2017/10/23 T.Inaba : add continuum oneshot function
+# 2017/10/25 T.Inaba : add board temperature function
