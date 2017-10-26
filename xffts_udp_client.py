@@ -487,18 +487,7 @@ class udp_client(object):
         return int(ret.split()[1])
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# History
+# -------
+# Written by Y.Kozuki
+# Modified by T.Inaba
