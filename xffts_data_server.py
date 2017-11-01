@@ -159,7 +159,7 @@ class data_server(object):
                 # For Available BE
                 if i+1 <= header.BE_num:
                     BE_num_temp, ch_num = struct.unpack('2I', rawdata[counter:counter+8])
-                    data_temp = list(struct.unpack('{}f'.format(ch_num), rawdata[counter+8:counter+ch_num*4]))
+                    data_temp = list(struct.unpack('{}f'.format(ch_num), rawdata[counter+8:counter+8+ch_num*4]))
                     pow_temp = numpy.sum(data_temp)
                     spec.append(data_temp)
                     pow.append(pow_temp)
