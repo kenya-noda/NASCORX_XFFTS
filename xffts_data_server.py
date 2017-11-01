@@ -155,15 +155,15 @@ class data_server(object):
             spec = []
             pow = []
             for i in range(self.BE_num_Max):
+                counter = 0
                 # For Available BE
                 if i+1 <= header.BE_num:
-                    start = header.data_size*i
-                    fin = header.data_size*(i+1)
-                    BE_num_temp, ch_num = struct.unpack('2I', rawdata[start:start+8])
-                    data_temp = list(struct.unpack('{}f'.format(ch_num), rawdata[start+8:fin]))
+                    BE_num_temp, ch_num = struct.unpack('2I', rawdata[counter:counter+8])
+                    data_temp = list(struct.unpack('{}f'.format(ch_num), rawdata[counter+8:counter+ch_num*4]))
                     pow_temp = numpy.sum(data_temp)
                     spec.append(data_temp)
                     pow.append(pow_temp)
+                    counter += 8 + ch_num * 4
                 # For Unavailable BE
                 elif header.BE_num <= i+1:
                     spec.append([0])
@@ -350,3 +350,4 @@ if __name__ == '__main__':
 # -------
 # written by T.Inaba
 # 2017/10/25 T.Inaba : add board temperature function & main thread.
+# 2017/11/01 T.Inaba : add counter method to index of rawdata instead of data-size method.
