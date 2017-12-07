@@ -8,7 +8,7 @@ import socket
 import struct
 import signal
 import threading
-import udp_trans
+import xffts_udp_client
 
 from necst.msg import XFFTS_msg
 from necst.msg import XFFTS_pm_msg
@@ -259,7 +259,7 @@ class data_server(object):
 
         # define UDP connection
         # ---------------------
-        udp = udp_trans.udp_client()
+        udp = xffts_udp_client.udp_client()
         udp.open()
 
         while True:
