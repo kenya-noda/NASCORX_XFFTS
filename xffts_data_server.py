@@ -8,7 +8,7 @@ import socket
 import struct
 import signal
 import threading
-import NASCO_XFFTS.xffts_udp_client as
+import NASCO_XFFTS.xffts_udp_client as xffts_udp_client
 
 from necst.msg import XFFTS_msg
 from necst.msg import XFFTS_pm_msg
