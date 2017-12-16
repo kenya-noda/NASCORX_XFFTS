@@ -139,8 +139,7 @@ class data_client(object):
             spectrum.append(numpy.average(self.data[start:fin], axis=0))
             timelist.append(self.timestamp[start])
             unixlist.append(self.unixlist[start])
-        self.result = [timelist, unixlist, spectrum]
-        return self.result
+        return [timelist, unixlist, spectrum]
 
     def data_subscriber(self, integtime, repeat, waittime):
         """
@@ -260,8 +259,7 @@ class data_client(object):
             spectrum.append(numpy.average(self.conti_data[start:fin], axis=0))
             timelist.append(self.conti_timestamp[start])
             unixlist.append(self.conti_unixlist[start])
-        self.conti_result = [timelist, unixlist, spectrum]
-        return self.conti_result
+        return [timelist, unixlist, spectrum]
 
     def conti_data_subscriber(self, integtime, repeat, waittime):
         sub2 = rospy.Subscriber('XFFTS_PM', XFFTS_pm_msg, self.conti_append)
@@ -368,8 +366,7 @@ class data_client(object):
             pass
         unixlist = self.btemp_unixlist[init_index:fin_index]
         templist = self.btemp_data[init_index:fin_index]
-        self.btemp_result = [unixlist, templist]
-        return self.btemp_result
+        return [unixlist, templist]
 
     def btemp_data_subscriber(self, sec, waittime):
         sub3 = rospy.Subscriber('XFFTS_TEMP', XFFTS_temp_msg, self.btemp_append)
