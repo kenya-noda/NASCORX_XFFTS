@@ -136,7 +136,7 @@ class data_client(object):
         for i in range(repeat):
             start = init_index + int(integtime / self.synctime * i)
             fin = init_index + int(integtime / self.synctime * (i+1))
-            spectrum.append(numpy.average(self.data[start:fin], axis=0))
+            spectrum.append(list(numpy.average(self.data[start:fin], axis=0)))
             timelist.append(self.timestamp[start])
             unixlist.append(self.unixlist[start])
         return [timelist, unixlist, spectrum]
@@ -256,7 +256,7 @@ class data_client(object):
         for i in range(repeat):
             start = init_index + int(integtime / self.synctime * i)
             fin = init_index + int(integtime / self.synctime * (i+1))
-            spectrum.append(numpy.average(self.conti_data[start:fin], axis=0))
+            spectrum.append(list(numpy.average(self.conti_data[start:fin], axis=0)))
             timelist.append(self.conti_timestamp[start])
             unixlist.append(self.conti_unixlist[start])
         return [timelist, unixlist, spectrum]
