@@ -178,14 +178,15 @@ class data_client(object):
 
         # list to numpy-array
         # -------------------
-        reqlist = numpy.array([req.SPEC_BE1, req.SPEC_BE2, req.SPEC_BE3, req.SPEC_BE4,
-                               req.SPEC_BE5, req.SPEC_BE6, req.SPEC_BE7, req.SPEC_BE8,
-                               req.SPEC_BE9, req.SPEC_BE10, req.SPEC_BE11, req.SPEC_BE12,
-                               req.SPEC_BE13, req.SPEC_BE14, req.SPEC_BE15, req.SPEC_BE16])
+        reqlist = [req.SPEC_BE1, req.SPEC_BE2, req.SPEC_BE3, req.SPEC_BE4,
+                   req.SPEC_BE5, req.SPEC_BE6, req.SPEC_BE7, req.SPEC_BE8,
+                   req.SPEC_BE9, req.SPEC_BE10, req.SPEC_BE11, req.SPEC_BE12,
+                   req.SPEC_BE13, req.SPEC_BE14, req.SPEC_BE15, req.SPEC_BE16]
+        reqlist = numpy.array(reqlist[0:req.BE_num])
 
         # append data to temporary array
         # ------------------------------
-        if not self.temp:
+        if self.temp == []:
             self.temp = numpy.array([reqlist])
         else:
             self.temp = numpy.concatenate((self.temp, [reqlist]), axis=0)
@@ -202,6 +203,7 @@ class data_client(object):
             self.timestamp.append(req.timestamp)
             self.unixlist.append(unix_ret)
         return
+
 
     # Continuum Func
     # --------------
