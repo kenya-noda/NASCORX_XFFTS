@@ -125,7 +125,7 @@ class data_client(object):
         self.integnum = int(integtime / 0.1)
         self.data_subscriber(integtime=integtime, repeat=repeat, start=start)
 
-        return [self.timestamp, self.unixlist, self.spectrum]
+        return [self.timestamp[:repeat], self.unixlist[:repeat], self.spectrum[:repeat]]
 
     def data_subscriber(self, integtime, repeat, start):
         """
