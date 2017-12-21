@@ -123,7 +123,7 @@ class data_client(object):
         # subscribe data
         # --------------
         self.integnum = int(integtime / 0.1)
-        self.data_subscriber(integtime=integtime, repeat=repeat, strat=start)
+        self.data_subscriber(integtime=integtime, repeat=repeat, start=start)
 
         return [self.timestamp, self.unixlist, self.spectrum]
 
@@ -197,6 +197,8 @@ class data_client(object):
         # ------------------------------
         if self.temp == []:
             self.temp = numpy.array([reqlist])
+            self.timestamp.append(req.timestamp)
+            self.unixlist.append(unix_ret)
         else:
             self.temp = numpy.concatenate((self.temp, [reqlist]), axis=0)
 
@@ -205,12 +207,10 @@ class data_client(object):
         if numpy.shape(self.temp)[0] == self.integnum:
             # data integration --
             integrated_spec = numpy.average(self.temp, axis=0)
-            integrated_spec.tolist()                              # convert ndarray to list
+            integrated_spec = integrated_spec.tolist()                              # convert ndarray to list
             self.temp = []
             # append data --
             self.spectrum.append(integrated_spec)
-            self.timestamp.append(req.timestamp)
-            self.unixlist.append(unix_ret)
         return
 
 
@@ -316,6 +316,8 @@ class data_client(object):
         # ------------------------------
         if self.conti_temp == []:
             self.conti_temp = numpy.array([reqlist])
+            self.conti_timestamp.append(req.timestamp)
+            self.conti_unixlist.append(unix_ret)
         else:
             self.conti_temp = numpy.concatenate((self.conti_temp, [reqlist]), axis=0)
 
@@ -324,12 +326,10 @@ class data_client(object):
         if numpy.shape(self.conti_temp)[0] == self.conti_integnum:
             # data integration --
             integrated_spec = numpy.average(self.conti_temp, axis=0)
-            integrated_spec.tolist()                              # convert ndarray to list
+            integrated_spec = integrated_spec.tolist()                              # convert ndarray to list
             self.conti_temp = []
             # append data --
             self.power.append(integrated_spec)
-            self.conti_timestamp.append(req.timestamp)
-            self.conti_unixlist.append(unix_ret)
         return
 
     # Board Temperature Func
