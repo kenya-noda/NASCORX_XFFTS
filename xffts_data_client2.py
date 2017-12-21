@@ -120,19 +120,14 @@ class data_client(object):
         self.spectrum = []
         self.temp = []
 
-        # calculate waiting time
-        # ----------------------
-        if start is None or start == 0: waittime = 0
-        else: waittime = start - time.time()
-
         # subscribe data
         # --------------
         self.integnum = int(integtime / 0.1)
-        self.data_subscriber(integtime=integtime, repeat=repeat, waittime=waittime)
+        self.data_subscriber(integtime=integtime, repeat=repeat, strat=start)
 
         return [self.timestamp, self.unixlist, self.spectrum]
 
-    def data_subscriber(self, integtime, repeat, waittime):
+    def data_subscriber(self, integtime, repeat, start):
         """
         DESCRIPTION
         ===========
@@ -146,6 +141,15 @@ class data_client(object):
              Type            : float
              Default         : Nothing.
         """
+        # calculate waiting time
+        # ----------------------
+        if start is None or start == 0:
+            waittime = 0
+            self.start = 0
+        else:
+            waittime = start - time.time()
+            self.start = round(start, 2)
+
         sub = rospy.Subscriber('XFFTS_SPEC', XFFTS_msg, self.append)
         time.sleep(waittime + integtime * repeat + 0.5)
         sub.unregister()
@@ -174,7 +178,12 @@ class data_client(object):
         # calculate UNIX-time
         # -------------------
         unixtime = self.timestamp_to_unixtime(req.timestamp)
-        unix_ret = round(unixtime, 1)                                               # using xx.x [sec] format
+        unix_ret = round(unixtime, 2)                                               # using xx.x [sec] format
+
+        # waiting for start time
+        # ----------------------
+        if unix_ret < self.start:
+            return
 
         # list to numpy-array
         # -------------------
@@ -237,33 +246,29 @@ class data_client(object):
         """
         # define data list
         # ----------------
-        self.conti_result = []
         self.conti_timestamp = []
         self.conti_unixlist = []
-        self.conti_data = []
-
-        if start is None or start == 0: waittime = 0
-        else: waittime = start - time.time()
+        self.power = []
+        self.conti_temp = []
 
         # subscribe data
         # --------------
-        self.conti_data_subscriber(integtime=integtime, repeat=repeat, waittime=waittime)
+        self.conti_integnum = int(integtime / 0.1)
+        self.conti_data_subscriber(integtime=integtime, repeat=repeat, start=start)
 
-        # data integration
-        # ----------------
-        spectrum = []
-        timelist = []
-        unixlist = []
-        init_index = self.index_search(start=start, mode='conti')
-        for i in range(repeat):
-            start = init_index + int(integtime / self.synctime * i)
-            fin = init_index + int(integtime / self.synctime * (i+1))
-            spectrum.append(list(numpy.average(self.conti_data[start:fin], axis=0)))
-            timelist.append(self.conti_timestamp[start])
-            unixlist.append(self.conti_unixlist[start])
-        return [timelist, unixlist, spectrum]
+        return [self.conti_timestamp[:repeat], self.conti_unixlist[:repeat], self.power[:repeat]]
 
-    def conti_data_subscriber(self, integtime, repeat, waittime):
+    def conti_data_subscriber(self, integtime, repeat, start):
+
+            # calculate waiting time
+        # ----------------------
+        if start is None or start == 0:
+            waittime = 0
+            self.conti_start = 0
+        else:
+            waittime = start - time.time()
+            self.conti_start = round(start, 2)
+
         sub2 = rospy.Subscriber('XFFTS_PM', XFFTS_pm_msg, self.conti_append)
         time.sleep(waittime + integtime * repeat + 0.5)
         sub2.unregister()
@@ -289,12 +294,15 @@ class data_client(object):
         3. data_temp : The spectrum of each sync-time. Only for available Back-End.
              where   : self.data
         """
-        data_temp = []
-
-        # Calculate UNIX-time
+        # calculate UNIX-time
         # -------------------
         unixtime = self.timestamp_to_unixtime(req.timestamp)
-        unix_ret = round(unixtime, 1)                                               # using xx.x [sec] format
+        unix_ret = round(unixtime, 2)                          # using xx.x [sec] format
+
+        # waiting for start time
+        # ----------------------
+        if unix_ret < self.conti_start:
+            return
 
         # append data to temporary list
         # -----------------------------
@@ -302,14 +310,26 @@ class data_client(object):
                    req.POWER_BE5, req.POWER_BE6, req.POWER_BE7, req.POWER_BE8,
                    req.POWER_BE9, req.POWER_BE10, req.POWER_BE11, req.POWER_BE12,
                    req.POWER_BE13, req.POWER_BE14, req.POWER_BE15, req.POWER_BE16]
-        for i in range(req.BE_num):
-            data_temp.append(reqlist[i])
+        reqlist = numpy.array(reqlist[0:req.BE_num])
 
-        # append return value
-        # -------------------
-        self.conti_timestamp.append(req.timestamp)
-        self.conti_unixlist.append(unix_ret)
-        self.conti_data.append(data_temp)
+        # append data to temporary array
+        # ------------------------------
+        if self.conti_temp == []:
+            self.conti_temp = numpy.array([reqlist])
+        else:
+            self.conti_temp = numpy.concatenate((self.conti_temp, [reqlist]), axis=0)
+
+        # data integration and append data
+        # --------------------------------
+        if numpy.shape(self.conti_temp)[0] == self.conti_integnum:
+            # data integration --
+            integrated_spec = numpy.average(self.conti_temp, axis=0)
+            integrated_spec.tolist()                              # convert ndarray to list
+            self.conti_temp = []
+            # append data --
+            self.power.append(integrated_spec)
+            self.conti_timestamp.append(req.timestamp)
+            self.conti_unixlist.append(unix_ret)
         return
 
     # Board Temperature Func
