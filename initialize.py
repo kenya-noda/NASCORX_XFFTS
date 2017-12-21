@@ -11,9 +11,8 @@ Bandwidth : 2000 [MHz]
 import xffts_udp_client
 
 client = xffts_udp_client.udp_client()
-client.close()
 client.open()
-
+client.stop()
 
 client.set_synctime(100000)              # synctime : 100 ms
 client.set_usedsections([1]*16)          # using board : 16
