@@ -10,7 +10,7 @@ import signal
 import threading
 
 sys.path.append('/home/amigos/ros/src/NASCORX')
-from NASCORX_XFFTS import xffts_udp_client
+from NASCORX_XFFTS import udp_client
 
 from NASCORX.msg import XFFTS_msg
 from NASCORX.msg import XFFTS_pm_msg
