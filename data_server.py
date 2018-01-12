@@ -170,6 +170,11 @@ class data_server(object):
                 elif header.BE_num <= i+1:
                     spec.append([0])
                     pow.append(0)
+            s1 = spec[0]
+            s2 = spec[1]
+
+            print(s1[10])
+            print(s2[10])
 
             # ROS Data Trans
             # --------------
