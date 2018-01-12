@@ -269,7 +269,7 @@ class data_server(object):
 
         # define UDP connection
         # ---------------------
-        udp = xffts_udp_client.udp_client()
+        udp = udp_client.udp_client()
         udp.open()
 
         while True:
