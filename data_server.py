@@ -156,8 +156,8 @@ class data_server(object):
             # --------------------------
             spec = []
             pow = []
+            counter = 0
             for i in range(self.BE_num_Max):
-                counter = 0
                 # For Available BE
                 if i+1 <= header.BE_num:
                     BE_num_temp, ch_num = struct.unpack('2I', rawdata[counter:counter+8])
@@ -178,7 +178,7 @@ class data_server(object):
 
             # ROS Data Trans
             # --------------
-             # Spectrum
+            # Spectrum
             XFFTS_SPEC.timestamp = timestamp
             XFFTS_SPEC.BE_num = BE_num
             XFFTS_SPEC.SPEC_BE1 = spec[0]
@@ -203,7 +203,7 @@ class data_server(object):
             XFFTS_SPEC.SPEC_BE20 = spec[19]
             pub.publish(XFFTS_SPEC)
 
-             # total power
+            # total power
             XFFTS_PM.timestamp = timestamp
             XFFTS_PM.BE_num = BE_num
             XFFTS_PM.POWER_BE1 = pow[0]
