@@ -1,5 +1,4 @@
 float64 timestamp
-int64[] USED_BE
 float64[] TEMP_BE1
 float64[] TEMP_BE2
 float64[] TEMP_BE3

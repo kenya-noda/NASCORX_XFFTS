@@ -16,3 +16,7 @@ float64[] SPEC_BE13
 float64[] SPEC_BE14
 float64[] SPEC_BE15
 float64[] SPEC_BE16
+float64[] SPEC_BE17
+float64[] SPEC_BE18
+float64[] SPEC_BE19
+float64[] SPEC_BE20

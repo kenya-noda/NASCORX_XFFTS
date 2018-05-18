@@ -110,16 +110,14 @@ class data_server(object):
 
             # binary to float conversion
             # --------------------------
-            data_temp = []
+            data_temp = [2] * 30000
             spec = []
             pow = []
             for i in range(self.BE_num_Max):
                 # For Available BE
                 if i+1 <= header.BE_num:
-                    ###change
-                    for j in range(30000):
-                        data = random.randint(1e9,1e17) 
-                        data_temp.append(data)
+                    ###change2
+                    
                     ###
                     pow_temp = sum(data_temp)
                     spec.append(data_temp)
@@ -130,7 +128,6 @@ class data_server(object):
                     pow.append(0)
             s1 = spec[0]
             s2 = pow[0]
-
             print("datalist",s1[10])
             print("pow",s2)
 
@@ -240,7 +237,7 @@ class data_server(object):
             timestamp = time.time()
             temps = []
             for i in range(16):
-                temp_data = random.randint(0,350)
+                temp_data = int(300)
                 temps.append(temp_data)
             print ("temp",temps)
 ###

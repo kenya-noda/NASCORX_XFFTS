@@ -6,9 +6,9 @@ import numpy
 import calendar
 import datetime
 
-from NASCORX.msg import XFFTS_msg
-from NASCORX.msg import XFFTS_pm_msg
-from NASCORX.msg import XFFTS_temp_msg
+from NASCORX_XFFTS.msg import XFFTS_msg
+from NASCORX_XFFTS.msg import XFFTS_pm_msg
+from NASCORX_XFFTS.msg import XFFTS_temp_msg
 
 
 class data_client(object):
@@ -395,6 +395,10 @@ class data_client(object):
         self.btemp_data.append(data_temp)
         return
 
+###change
+if __name__ == '__main__':
+    data = data_client()
+###
 
 # History
 # -------
