@@ -66,9 +66,9 @@ class data_client(object):
         1. unixtime : The unix-timestamp(UTC, float) of input XFFTS-timestamp(UTC, str).
              Type   : float
         """
-        t = datetime.datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fPC  ')
-        unixtime = calendar.timegm(t.timetuple()) + t.microsecond / 1e6
-        return unixtime
+       # t = datetime.datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fPC  ')
+        #unixtime = calendar.timegm(t.timetuple()) + t.microsecond / 1e6
+        return timestamp
 
     # Spectrum Func
     # -------------
@@ -131,16 +131,17 @@ class data_client(object):
         # data integration
         # ----------------
         spectrum = []
-        timelist = []
-        unixlist = []
+       # timelist = []
+       # unixlist = []
         init_index = self.index_search(start=start, mode='spec')
         for i in range(repeat):
             start = init_index + int(integtime / self.synctime * i)
             fin = init_index + int(integtime / self.synctime * (i+1))
-            spectrum.append(list(numpy.average(self.data[start:fin], axis=0)))
-            timelist.append(self.timestamp[start])
-            unixlist.append(self.unixlist[start])
-        return [timelist, unixlist, spectrum]
+            spectrum.append(numpy.average(self.data[start:fin], axis=0))
+            print(spectrum)
+# timelist.append(self.timestamp[start])
+           # unixlist.append(self.unixlist[start])
+        return [spectrum]
 
     def data_subscriber(self, integtime, repeat, waittime):
         """
@@ -185,8 +186,8 @@ class data_client(object):
 
         # Calculate UNIX-time
         # -------------------
-        unixtime = self.timestamp_to_unixtime(req.timestamp)
-        unix_ret = round(unixtime, 1)                                               # using xx.x [sec] format
+#        unixtime = self.timestamp_to_unixtime(req.timestamp)
+#        unix_ret = round(unixtime, 1)                                               # using xx.x [sec] format
 
         # append data to temporary list
         # -----------------------------
@@ -200,8 +201,8 @@ class data_client(object):
 
         # append return value
         # -------------------
-        self.timestamp.append(req.timestamp)
-        self.unixlist.append(unix_ret)
+ #       self.timestamp.append(req.timestamp)
+#        self.unixlist.append(unix_ret)
         self.data.append(data_temp)
         return
 
@@ -395,9 +396,18 @@ class data_client(object):
         self.btemp_data.append(data_temp)
         return
 
+def run(integtime, repeat, synctime):
+    data = data_client()
+    oneshot = data.oneshot(integtime, repeat)
+    print(oneshot)
+
 ###change
 if __name__ == '__main__':
-    data = data_client()
+    integtime = int(input('integ ?:  '))
+    repeat = int(input('repeat ?:  '))
+    synctime = float(input('synctime ?:  '))
+    
+    run(integtime, repeat, synctime)
 ###
 
 # History

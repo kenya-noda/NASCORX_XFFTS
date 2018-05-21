@@ -6,10 +6,10 @@ import sys
 import numpy
 import threading
 
-sys.path.append('/home/amigos/ros/src/NASCORX')
-from NASCORX_XFFTS import data_client2
+sys.path.append('/home/amigos/ros/src/NASCORX_XFFTS')
+import data_client_du
 
-dir = '/home/amigos/ros/src/NASCORX/NASCORX_XFFTS/data2/'
+dir = '/home/amigos/ros/src/NASCORX_XFFTS/data2/'
 
 class Oneshot(object):
     spec = None
@@ -17,7 +17,7 @@ class Oneshot(object):
     btemp = None
 
     def __init__(self, synctime=0.1):
-        self.client = data_client2.data_client(synctime=synctime)
+        self.client = data_client_du.data_client(synctime=synctime)
         pass
 
     def get_spectrum(self, integtime, repeat):
@@ -56,7 +56,7 @@ class Oneshot(object):
               '\n')
         return self.spec, self.conti, self.btemp
 
-def run(integtime, repeat, num, synctime=0.1):
+def run(integtime, repeat, synctime=0.1):
     c = Oneshot(synctime=synctime)
     spec, conti, btemp = c.measure(integtime=integtime, repeat=repeat)
     unixtime = spec[1]
@@ -65,16 +65,15 @@ def run(integtime, repeat, num, synctime=0.1):
     continuum = conti[2]
 
     for i in range(numpy.shape(spec1)[1]):
-        numpy.savetxt(dir+'spec_{}-{}_exp{}_BE{}.csv'.format(integtime, repeat, num, i+1), spec1[:, i, :], delimiter=',')
+        numpy.savetxt(dir+'spec_{}-{}_BE{}.csv'.format(integtime, repeat, i+1), spec1[:, i, :], delimiter=',')
         pass
     numpy.savetxt(dir+'unix_{}-{}.csv'.format(integtime, repeat), unixtime, delimiter=',')
 
-if __name__ == 'main':
+if __name__ == '__main__':
     integtime = int(input('integ ?:  '))
     repeat = int(input('repeat ?:  '))
-    synctime = float('synctime ?:  ')
+    synctime = float(input('synctime ?:  '))
     run(integtime=integtime, repeat=repeat, synctime=synctime)
-
 
 
 
