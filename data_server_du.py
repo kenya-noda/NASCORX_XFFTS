@@ -289,7 +289,7 @@ class data_header(object):
         self.data_format = "F   "
         self.package_length = int(262224)
         self.BE_name = "XFFTS"
-        self.timestamp = str(time.time())
+        self.timestamp = (datetime.now()).strftime('%Y-%m-%dT%H:%M:%S.%fPC  ')
         self.integration_time = 998993
         self.phase_number = int(1)
         self.BE_num = int(16)   #BEの数を変えれる
