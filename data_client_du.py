@@ -260,14 +260,15 @@ class data_client(object):
         for i in range(repeat):
             start = init_index + int(integtime / self.synctime * i)
             fin = init_index + int(integtime / self.synctime * (i+1))
-            spectrum.append(list(numpy.average(self.conti_data[start:fin], axis=0)))
-            timelist.append(self.conti_timestamp[start])
-            unixlist.append(self.conti_unixlist[start])
+            spectrum.append((numpy.average(self.conti_data[start:fin], axis=0)))
+            timelist.append(self.conti_timestamp)
+            unixlist.append(self.conti_unixlist)
+        print("conti_timelist's length: ",len(self.conti_timestamp))
         return [timelist, unixlist, spectrum]
 
     def conti_data_subscriber(self, integtime, repeat, waittime):
         sub2 = rospy.Subscriber('XFFTS_PM', XFFTS_pm_msg, self.conti_append)
-        time.sleep(waittime + integtime * repeat + 1.5)
+        time.sleep(waittime + integtime * repeat + 3.5)
         sub2.unregister()
         return
 
@@ -371,6 +372,7 @@ class data_client(object):
             pass
         unixlist = self.btemp_unixlist[init_index:fin_index]
         templist = self.btemp_data[init_index:fin_index]
+        print("unixlist's length: ",len(self.btemp_unixlist))
         return [unixlist, templist]
 
     def btemp_data_subscriber(self, sec, waittime):
@@ -401,6 +403,12 @@ def run(integtime, repeat, synctime):
     data = data_client()
     oneshot = data.oneshot(integtime, repeat)
     print("spectrun\n",oneshot[2],"\n")
+    
+    conti_oneshot = data.conti_oneshot(integtime, repeat)
+    print("spectrum\n",conti_oneshot[2],"\n")
+
+    btemp_oneshot = data.btemp_oneshot(sec=10)
+    print("templist\n",btemp_oneshot[1])
 
 ###change
 if __name__ == '__main__':
