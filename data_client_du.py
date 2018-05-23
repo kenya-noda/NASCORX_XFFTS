@@ -138,10 +138,10 @@ class data_client(object):
             start = init_index + int(integtime / self.synctime * i)
             fin = init_index + int(integtime / self.synctime * (i+1))
             spectrum.append(numpy.average(self.data[start:fin], axis=0))
-            print(spectrum)
             timelist.append(self.timestamp[start])
             unixlist.append(self.unixlist[start])
-        return [timelist, unixkist, spectrum]
+
+        return [timelist, unixlist, spectrum]
 
     def data_subscriber(self, integtime, repeat, waittime):
         """
@@ -158,8 +158,9 @@ class data_client(object):
              Default         : Nothing.
         """
         sub = rospy.Subscriber('XFFTS_SPEC', XFFTS_msg, self.append)
-        time.sleep(waittime + integtime * repeat + 0.5)
+        time.sleep(waittime + integtime * repeat + 5.0)
         sub.unregister()
+
         return
 
     def append(self, req):
@@ -266,7 +267,7 @@ class data_client(object):
 
     def conti_data_subscriber(self, integtime, repeat, waittime):
         sub2 = rospy.Subscriber('XFFTS_PM', XFFTS_pm_msg, self.conti_append)
-        time.sleep(waittime + integtime * repeat + 0.5)
+        time.sleep(waittime + integtime * repeat + 1.5)
         sub2.unregister()
         return
 

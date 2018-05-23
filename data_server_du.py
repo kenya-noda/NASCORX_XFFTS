@@ -2,7 +2,7 @@
 
 import sys
 import time
-import datetime
+from datetime import datetime
 import rospy
 import numpy
 import signal
@@ -129,10 +129,10 @@ class data_server(object):
                     spec.append([0])
                     pow.append(0)
             s1 = spec[0]
-            s2 = pow[0]
+            #s2 = pow[0]
 
             print("datalist",s1[10])
-            print("pow",s2)
+            #print("pow",s2)
 
             # ROS Data Trans
             # --------------
@@ -160,7 +160,7 @@ class data_server(object):
             XFFTS_SPEC.SPEC_BE19 = spec[18]
             XFFTS_SPEC.SPEC_BE20 = spec[19]
             pub.publish(XFFTS_SPEC)
-            
+
             # total power
             XFFTS_PM.timestamp = timestamp
             XFFTS_PM.BE_num = BE_num
@@ -242,7 +242,7 @@ class data_server(object):
             for i in range(16):
                 temp_data = random.randint(0,350)
                 temps.append(temp_data)
-            print ("temp",temps)
+            #print ("temp",temps)
 ###
             # ROS Data Trans
             # --------------
@@ -292,7 +292,7 @@ class data_header(object):
         self.timestamp = (datetime.now()).strftime('%Y-%m-%dT%H:%M:%S.%fPC  ')
         self.integration_time = 998993
         self.phase_number = int(1)
-        self.BE_num = int(16)   #BEの数を変えれる
+        self.BE_num = int(8)   #BEの数を変えれる
         self.blocking = int(1)
         return
 ###
