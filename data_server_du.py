@@ -117,8 +117,8 @@ class data_server(object):
                 # For Available BE
                 if i+1 <= header.BE_num:
                     ###change
-                    for j in range(30000):
-                        data = random.randint(1e9,1e17) 
+                    for j in range(32768):
+                        data = random.randint(1,10000) 
                         data_temp.append(data)
                     ###
                     pow_temp = sum(data_temp)
@@ -128,10 +128,10 @@ class data_server(object):
                 elif header.BE_num <= i+1:
                     spec.append([0])
                     pow.append(0)
-            s1 = spec[0]
+            #s1 = spec[0]
             #s2 = pow[0]
 
-            print("datalist",s1[10])
+            #print("datalist",s1[10])
             #print("pow",s2)
 
             # ROS Data Trans
@@ -292,7 +292,7 @@ class data_header(object):
         self.timestamp = (datetime.now()).strftime('%Y-%m-%dT%H:%M:%S.%fPC  ')
         self.integration_time = 998993
         self.phase_number = int(1)
-        self.BE_num = int(8)   #BEの数を変えれる
+        self.BE_num = int(4)   #BEの数を変えれる
         self.blocking = int(1)
         return
 ###

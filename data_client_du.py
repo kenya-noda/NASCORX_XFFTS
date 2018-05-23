@@ -138,9 +138,9 @@ class data_client(object):
             start = init_index + int(integtime / self.synctime * i)
             fin = init_index + int(integtime / self.synctime * (i+1))
             spectrum.append(numpy.average(self.data[start:fin], axis=0))
-            timelist.append(self.timestamp[start])
-            unixlist.append(self.unixlist[start])
-
+            timelist.append(self.timestamp)
+            unixlist.append(self.unixlist)
+        print("timelist's length: ",len(self.timestamp))
         return [timelist, unixlist, spectrum]
 
     def data_subscriber(self, integtime, repeat, waittime):
@@ -158,7 +158,7 @@ class data_client(object):
              Default         : Nothing.
         """
         sub = rospy.Subscriber('XFFTS_SPEC', XFFTS_msg, self.append)
-        time.sleep(waittime + integtime * repeat + 5.0)
+        time.sleep(waittime + integtime * repeat + 3.5)
         sub.unregister()
 
         return
@@ -400,7 +400,7 @@ class data_client(object):
 def run(integtime, repeat, synctime):
     data = data_client()
     oneshot = data.oneshot(integtime, repeat)
-    print(oneshot)
+    print("spectrun\n",oneshot[2],"\n")
 
 ###change
 if __name__ == '__main__':
