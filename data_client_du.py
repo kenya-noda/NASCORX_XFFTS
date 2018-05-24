@@ -5,6 +5,7 @@ import rospy
 import numpy
 import calendar
 import datetime
+import threading
 
 from NASCORX_XFFTS.msg import XFFTS_msg
 from NASCORX_XFFTS.msg import XFFTS_pm_msg
@@ -13,6 +14,8 @@ from NASCORX_XFFTS.msg import XFFTS_temp_msg
 
 class data_client(object):
     synctime = 0.1
+    spec_data = None
+    conti_data = None
 
     def __init__(self, synctime=0.1):
         rospy.init_node('XFFTS_data_Subscriber')
@@ -141,7 +144,9 @@ class data_client(object):
             timelist.append(self.timestamp)
             unixlist.append(self.unixlist)
         print("timelist's length: ",len(self.timestamp))
-        return [timelist, unixlist, spectrum]
+        self.spec_data = [timelist, unixlist, spectrum]
+
+        return
 
     def data_subscriber(self, integtime, repeat, waittime):
         """
@@ -264,7 +269,9 @@ class data_client(object):
             timelist.append(self.conti_timestamp)
             unixlist.append(self.conti_unixlist)
         print("conti_timelist's length: ",len(self.conti_timestamp))
-        return [timelist, unixlist, spectrum]
+        self.conti_data = [timelist, unixlist, spectrum]
+
+        return
 
     def conti_data_subscriber(self, integtime, repeat, waittime):
         sub2 = rospy.Subscriber('XFFTS_PM', XFFTS_pm_msg, self.conti_append)
@@ -399,25 +406,51 @@ class data_client(object):
         self.btemp_data.append(data_temp)
         return
 
+
+    def measure(self, integtime, repeat):
+        th1 = threading.Thread(target=self.oneshot, args=(integtime, repeat))
+        th2 = threading.Thread(target=self.conti_oneshot, args=(integtime, repeat))
+        th1.setDaemon(True)
+        th2.setDaemon(True)
+        th1.start()
+        th2.start()
+
+        th1.join()
+        th2.join()
+
+        return self.spec_data, self.conti_data
+
+
+
+
 def run(integtime, repeat, synctime):
     data = data_client()
-    oneshot = data.oneshot(integtime, repeat)
-    print("spectrun\n",oneshot[2],"\n")
+    spec, conti = data.measure(integtime, repeat)
+
+    unixtime = spec[1]
+    spectrum = numpy.array(spec[2])
+    continuum = conti[2]
     
-    conti_oneshot = data.conti_oneshot(integtime, repeat)
-    print("spectrum\n",conti_oneshot[2],"\n")
+    print("\nunixtime\n",unixtime,"\n")
+    print("spectrum\n",spectrum,"\n")
+    print("continuum\n",continuum,"\n")
 
-    btemp_oneshot = data.btemp_oneshot(sec=10)
-    print("templist\n",btemp_oneshot[1])
 
-###change
+def parameter():
+    integtime = req.integtime
+    repeat = req.repeat
+    synctime = req.synctime
+
+    return [integtime, repeat, synctime]
+
+
 if __name__ == '__main__':
-    integtime = int(input('integ ?:  '))
-    repeat = int(input('repeat ?:  '))
-    synctime = float(input('synctime ?:  '))
-    
-    run(integtime, repeat, synctime)
-###
+    rospy.init_noda('XFFTS_parameter_Subscriber')
+    sub4 = rospy.Subscriber('XFFTS_PARAMETER', XFFTS_para_msg, parameter)
+    rospy.spinOnce()
+
+    run(sub4[0], sub4[1], sub4[2])
+
 
 # History
 # -------

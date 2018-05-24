@@ -54,6 +54,7 @@ add_message_files(
     XFFTS_msg.msg
     XFFTS_pm_msg.msg
     XFFTS_temp_msg.msg
+    XFFTS_para_msg.msg
  )
 
 ## Generate services in the 'srv' folder
