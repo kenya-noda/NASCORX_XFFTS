@@ -20,3 +20,4 @@ float64[] SPEC_BE17
 float64[] SPEC_BE18
 float64[] SPEC_BE19
 float64[] SPEC_BE20
+string from_node

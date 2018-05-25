@@ -439,11 +439,9 @@ def run(integtime, repeat, synctime):
     print("continuum\n",continuum,"\n")
     
     for i in range(numpy.shape(spectrum)[1]):
-        hdu = fits.PrimaryHDU(spectrum)
-        hdu.writeto(dir+'spec_{}-{}.fits'.format(integtime, repeat, i+1))
+        hdu = fits.PrimaryHDU(spectrum[:, i, :])
+        hdu.writeto(dir+'spec_{}-{}_BE{}_{}.fits'.format(integtime, repeat, i+1, unixtime[0][0]))
         pass
-
-    numpy.savetxt(dir+'unix_{}-{}.csv'.format(integtime, repeat), unixtime, delimiter=',')
     
     return
 
@@ -456,12 +454,12 @@ def parameter():
 
 
 if __name__ == '__main__':
-    rospy.init_noda('XFFTS_parameter_Subscriber')
-    sub = rospy.Subscriber('XFFTS_PARAMETER', XFFTS_para_msg, parameter)
-    rospy.spinOnce()
+   # rospy.init_noda('XFFTS_parameter_Subscriber')
+    #sub = rospy.Subscriber('XFFTS_PARAMETER', XFFTS_para_msg, parameter)
+    #rospy.spinOnce()
 
-    run(sub[0], sub[1], sub[2])
-
+    #run(sub[0], sub[1], sub[2])
+    run(int(1), int(1),float(0.1))
 
 # History
 # -------
