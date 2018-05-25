@@ -110,13 +110,13 @@ class data_server(object):
 
             # binary to float conversion
             # --------------------------
-            data_temp = []
             spec = []
             pow = []
             for i in range(self.BE_num_Max):
                 # For Available BE
                 if i+1 <= header.BE_num:
                     ###change
+                    data_temp = []
                     for j in range(32768):
                         data = random.randint(1,10000) 
                         data_temp.append(data)
