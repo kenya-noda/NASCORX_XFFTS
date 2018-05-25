@@ -6,11 +6,14 @@ import numpy
 import calendar
 import datetime
 import threading
+import astropy.io.fits as fits
 
 from NASCORX_XFFTS.msg import XFFTS_msg
 from NASCORX_XFFTS.msg import XFFTS_pm_msg
 from NASCORX_XFFTS.msg import XFFTS_temp_msg
+from NASCORX_XFFTS.msg import XFFTS_para_msg
 
+dir = '/home/amigos/ros/src/NASCORX_XFFTS/data/'
 
 class data_client(object):
     synctime = 0.1
@@ -434,7 +437,15 @@ def run(integtime, repeat, synctime):
     print("\nunixtime\n",unixtime,"\n")
     print("spectrum\n",spectrum,"\n")
     print("continuum\n",continuum,"\n")
+    
+    for i in range(numpy.shape(spectrum)[1]):
+        hdu = fits.PrimaryHDU(spectrum)
+        hdu.writeto(dir+'spec_{}-{}.fits'.format(integtime, repeat, i+1))
+        pass
 
+    numpy.savetxt(dir+'unix_{}-{}.csv'.format(integtime, repeat), unixtime, delimiter=',')
+    
+    return
 
 def parameter():
     integtime = req.integtime
@@ -446,10 +457,10 @@ def parameter():
 
 if __name__ == '__main__':
     rospy.init_noda('XFFTS_parameter_Subscriber')
-    sub4 = rospy.Subscriber('XFFTS_PARAMETER', XFFTS_para_msg, parameter)
+    sub = rospy.Subscriber('XFFTS_PARAMETER', XFFTS_para_msg, parameter)
     rospy.spinOnce()
 
-    run(sub4[0], sub4[1], sub4[2])
+    run(sub[0], sub[1], sub[2])
 
 
 # History
