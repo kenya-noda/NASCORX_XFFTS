@@ -45,14 +45,24 @@ class data_client(object):
         else:
             if mode == 'spec':
                 unixlist = self.unixlist
-                start_arg = round(start, 1)
+                start_arg = round(start,1)
             elif mode == 'conti':
                 unixlist = self.conti_unixlist
-                start_arg = round(start, 1)
+                start_arg = round(start,1)
             elif mode == 'temp':
                 unixlist = self.btemp_unixlist
-                start_arg = round(start)
-            index = unixlist.index(start_arg)
+                start_arg = round(start,1)
+
+            try:
+                index = unixlist.index(start_arg)
+            except ValueError:
+                try:
+                    index = unixlist.index(start_arg + 0.1)
+                except ValueError:
+                    try:
+                        index = unixlist.index(start_arg + 0.2)
+                    except ValueError:
+                        index = unixlist.index(start_arg + 0.3)
         return index
 
     def timestamp_to_unixtime(self, timestamp):
@@ -79,7 +89,7 @@ class data_client(object):
     # Spectrum Func
     # -------------
 
-    def oneshot(self, integtime, repeat, start=None):
+    def oneshot(self, integtime, repeat, start):
         """
         DESCRIPTION
         ===========
@@ -139,6 +149,7 @@ class data_client(object):
         spectrum = []
         timelist = []
         unixlist = []
+        print(self.unixlist)
         init_index = self.index_search(start=start, mode='spec')
         for i in range(repeat):
             start = init_index + int(integtime / self.synctime * i)
@@ -218,7 +229,7 @@ class data_client(object):
     # Continuum Func
     # --------------
 
-    def conti_oneshot(self, integtime, repeat, start=None):
+    def conti_oneshot(self, integtime, repeat, start):
         """
         DESCRIPTION
         ===========
@@ -329,7 +340,7 @@ class data_client(object):
     # Board Temperature Func
     # ----------------------
 
-    def btemp_oneshot(self, sec, start=None):
+    def btemp_oneshot(self, sec, start):
         """
         DESCRIPTION
         ===========
@@ -410,9 +421,9 @@ class data_client(object):
         return
 
 
-    def measure(self, integtime, repeat):
-        th1 = threading.Thread(target=self.oneshot, args=(integtime, repeat))
-        th2 = threading.Thread(target=self.conti_oneshot, args=(integtime, repeat))
+    def measure(self, integtime, repeat, start):
+        th1 = threading.Thread(target=self.oneshot, args=(integtime, repeat, start))
+        th2 = threading.Thread(target=self.conti_oneshot, args=(integtime, repeat, start))
         th1.setDaemon(True)
         th2.setDaemon(True)
         th1.start()
@@ -426,9 +437,9 @@ class data_client(object):
 
 
 
-def run(integtime, repeat, synctime):
+def run(integtime, repeat, synctime, start):
     data = data_client()
-    spec, conti = data.measure(integtime, repeat)
+    spec, conti = data.measure(integtime, repeat, start)
 
     unixtime = spec[1]
     spectrum = numpy.array(spec[2])
@@ -449,8 +460,9 @@ def parameter():
     integtime = req.integtime
     repeat = req.repeat
     synctime = req.synctime
+    start = req.start
 
-    return [integtime, repeat, synctime]
+    return [integtime, repeat, synctime, start]
 
 
 if __name__ == '__main__':
@@ -458,8 +470,10 @@ if __name__ == '__main__':
     #sub = rospy.Subscriber('XFFTS_PARAMETER', XFFTS_para_msg, parameter)
     #rospy.spinOnce()
 
-    #run(sub[0], sub[1], sub[2])
-    run(int(1), int(1),float(0.1))
+    #run(sub[0], sub[1], sub[2], sub[3])
+    start = float(time.time()+1)
+    print(start)
+    run(int(1), int(1),float(0.1),start)
 
 # History
 # -------
