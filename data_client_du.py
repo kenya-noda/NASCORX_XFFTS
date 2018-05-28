@@ -21,7 +21,6 @@ class data_client(object):
     conti_data = None
 
     def __init__(self, synctime=0.1):
-        rospy.init_node('XFFTS_data_Subscriber')
         self.synctime = synctime
         pass
 
@@ -57,12 +56,15 @@ class data_client(object):
                 index = unixlist.index(start_arg)
             except ValueError:
                 try:
-                    index = unixlist.index(start_arg + 0.1)
+                    start_arg = round(start_arg + 0.1, 1)
+                    index = unixlist.index(start_arg)
                 except ValueError:
                     try:
-                        index = unixlist.index(start_arg + 0.2)
+                        start_arg = round(start_arg + 0.2, 1)
+                        index = unixlist.index(start_arg)
                     except ValueError:
-                        index = unixlist.index(start_arg + 0.3)
+                        start_arg = round(start_arg + 0.3, 1)
+                        index = unixlist.index(start_arg)
         return index
 
     def timestamp_to_unixtime(self, timestamp):
@@ -149,15 +151,14 @@ class data_client(object):
         spectrum = []
         timelist = []
         unixlist = []
-        print(self.unixlist)
         init_index = self.index_search(start=start, mode='spec')
         for i in range(repeat):
             start = init_index + int(integtime / self.synctime * i)
             fin = init_index + int(integtime / self.synctime * (i+1))
             spectrum.append(numpy.average(self.data[start:fin], axis=0))
-            timelist.append(self.timestamp)
-            unixlist.append(self.unixlist)
-        print("timelist's length: ",len(self.timestamp))
+            timelist.append(self.timestamp[start:fin])
+            unixlist.append(self.unixlist[start:fin])
+        #print("timelist's length: ",len(self.timestamp))
         self.spec_data = [timelist, unixlist, spectrum]
 
         return
@@ -280,9 +281,9 @@ class data_client(object):
             start = init_index + int(integtime / self.synctime * i)
             fin = init_index + int(integtime / self.synctime * (i+1))
             spectrum.append((numpy.average(self.conti_data[start:fin], axis=0)))
-            timelist.append(self.conti_timestamp)
-            unixlist.append(self.conti_unixlist)
-        print("conti_timelist's length: ",len(self.conti_timestamp))
+            timelist.append(self.conti_timestamp[start:fin])
+            unixlist.append(self.conti_unixlist[start:fin])
+        #print("conti_timelist's length: ",len(self.conti_timestamp))
         self.conti_data = [timelist, unixlist, spectrum]
 
         return
@@ -437,8 +438,14 @@ class data_client(object):
 
 
 
-def run(integtime, repeat, synctime, start):
+def run(req):
     data = data_client()
+
+    integtime = req.integtime
+    repeat = req.repeat
+    synctime = req.synctime
+    start = req.timestamp
+
     spec, conti = data.measure(integtime, repeat, start)
 
     unixtime = spec[1]
@@ -456,24 +463,15 @@ def run(integtime, repeat, synctime, start):
     
     return
 
-def parameter():
-    integtime = req.integtime
-    repeat = req.repeat
-    synctime = req.synctime
-    start = req.start
-
-    return [integtime, repeat, synctime, start]
-
 
 if __name__ == '__main__':
-   # rospy.init_noda('XFFTS_parameter_Subscriber')
-    #sub = rospy.Subscriber('XFFTS_PARAMETER', XFFTS_para_msg, parameter)
-    #rospy.spinOnce()
+    
+    rospy.init_node('XFFTS')
+    sub = rospy.Subscriber('XFFTS_parameter', XFFTS_para_msg, run)
+    rospy.spin()
 
-    #run(sub[0], sub[1], sub[2], sub[3])
-    start = float(time.time()+1)
-    print(start)
-    run(int(1), int(1),float(0.1),start)
+    #start = float(time.time()+1)
+    #run(int(1), int(1),float(0.1),start)
 
 # History
 # -------
